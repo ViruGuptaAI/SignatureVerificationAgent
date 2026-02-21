@@ -1,0 +1,50 @@
+{
+  "request_id": "e135a9f0-01b8-42c5-bbf6-ad0aeff2bb21",
+  "verdict": {
+    "signature_matched": false,
+    "avg_confidence": 0.545,
+    "match_ratio": "1/2",
+    "decision_method": "majority_vote",
+    "reasoning": "Overall verdict is **NOT MATCHED** because only **1 of 2** comparisons matched (avg confidence **0.54**). In **Comparison 1**, the test signature differs structurally from the reference: it is compact with repeated small humps and an angular terminal, while the reference is elongated with a dominant long underline/baseline, a prominent tall loop/ascender with crossing, different stroke flow, pressure variation, curvature geometry, and proportions (despite low image quality). In **Comparison 2**, the two reference images match almost identically across stroke continuity, pressure/line weight, loop placement, slant, baseline behavior, and spacing. These results **contradict** each other (one clear non-match vs one near-identical match), yielding an overall non-match decision.",
+    "inconclusive": true
+  },
+  "individual_results": [
+    {
+      "reference_filename": "cropped_sign_sign2.jpg",
+      "test_filename": "finacle_sign_0.jpg",
+      "signature_matched": false,
+      "confidence_score": 0.12,
+      "reasoning": "Image quality is low (pixelated/cropped), which limits fine stroke detail, but the overall structures differ clearly.\n\n1) Stroke Flow & Line Continuity: The top signature shows a compact, wavy sequence of connected humps with angular breaks near the right end; the bottom signature shows a long continuous baseline/underline with a distinct tall central stroke and fewer internal humps.\n\n2) Pressure Pattern & Line Weight: The top signature appears more uniformly thick with less visible contrast; the bottom signature shows more noticeable variation (heavier downstroke on the tall central stroke and lighter horizontal extension).\n\n3) Curvature & Stroke Geometry: The top has repeated rounded humps transitioning into sharper, triangular/angled forms at the end; the bottom has one prominent tall loop/ascender and mostly straight horizontal geometry.\n\n4) Slant & Writing Angle: The top’s vertical elements are minimal and the form reads mostly horizontal; the bottom has a pronounced upright/tall stroke with a different overall angle emphasis.\n\n5) Loops, Hooks & Flourishes: The bottom has a clear left loop and a tall loop/ascender with a crossing; the top lacks a comparable tall loop/cross feature and instead uses multiple small humps and an angular terminal.\n\n6) Alignment & Baseline Behavior: The bottom strongly features an underline-like baseline extending far right; the top does not show the same dominant underline structure.\n\n7) Shape Repetition & Letterform Consistency: The top repeats similar hump shapes; the bottom does not repeat that pattern and instead centers on one tall stroke and long horizontal line.\n\n8) Structural Consistency & Proportions: The top is compact with clustered mid-height strokes; the bottom is elongated with significant horizontal spread and a single high ascender. These proportion differences are substantial.\n\nOverall, the signatures do not exhibit consistent matching across the key visual dimensions.",
+      "usage": {
+        "input_tokens": 1173,
+        "output_tokens": 559,
+        "reasoning_tokens": 140,
+        "total_tokens": 1732
+      },
+      "elapsed_ms": 19356.1,
+      "error": null
+    },
+    {
+      "reference_filename": "finacle_sign_0.jpg",
+      "test_filename": "finacle_sign_0.jpg",
+      "signature_matched": true,
+      "confidence_score": 0.97,
+      "reasoning": "Both signatures appear visually indistinguishable across the compared dimensions. Stroke flow and line continuity match closely (same long sweeping baseline, same central tall looped stroke crossing the baseline, and the same small terminal strokes). Pressure pattern/line weight is consistent in both (similar thickness throughout with the same heavier downstroke in the tall central loop). Curvature and geometry align (same rounded initial loop on the left and same narrow, tall loop in the center with matching crossings). Slant and writing angle are the same (dominant right-leaning central stroke). Loops/hooks/flourishes match in size and placement (left circular loop and central loop; same exit/terminal line extending right). Baseline behavior is identical (straight, slightly rising long underline). Proportions and spacing between the left loop, central loop, and rightward extension are the same. The only differences are minor pixel/noise artifacts consistent with image rendering, not structural variation.",
+      "usage": {
+        "input_tokens": 1223,
+        "output_tokens": 282,
+        "reasoning_tokens": 64,
+        "total_tokens": 1505
+      },
+      "elapsed_ms": 13538.1,
+      "error": null
+    }
+  ],
+  "total_usage": {
+    "input_tokens": 3143,
+    "output_tokens": 1007,
+    "reasoning_tokens": 204,
+    "total_tokens": 4150
+  },
+  "elapsed_ms": 23292.6
+}

@@ -1,0 +1,50 @@
+{
+  "request_id": "61a067bd-cc43-4264-865c-b2007057797b",
+  "verdict": {
+    "signature_matched": false,
+    "avg_confidence": 0.3,
+    "match_ratio": "1/2",
+    "decision_method": "majority_vote",
+    "reasoning": "The batch signature verification resulted in a final verdict of NOT MATCHED, with only 1 out of 2 comparisons indicating a match and an average confidence of 0.30. The test signature (VF1.jpg) differed significantly from the reference (VR1.jpg) in stroke flow, pressure patterns, curvature, and letterform consistency, particularly due to pronounced angular zigzags and irregular baseline behavior. In contrast, the two reference signatures (VR2.jpg vs VR1.jpg) showed strong agreement across all key visual features, including smooth stroke flow, consistent pressure, and matching structural proportions. The clear visual discrepancies between the test and reference signatures outweighed superficial similarities, leading to the overall non-match verdict.",
+    "inconclusive": false
+  },
+  "individual_results": [
+    {
+      "reference_filename": "VF1.jpg",
+      "test_filename": "VR1.jpg",
+      "signature_matched": false,
+      "confidence_score": 0.3,
+      "reasoning": "1. Stroke Flow & Line Continuity: Both signatures exhibit a generally smooth stroke flow, but the first signature has a more jagged, zigzag central section, while the second signature features more rounded and connected strokes. 2. Pressure Pattern & Line Weight: Both signatures have relatively consistent line weight, but the pressure application in the first signature appears slightly more variable, especially in the central zigzag area. 3. Curvature & Stroke Geometry: The first signature has pronounced angular zigzags in the middle, while the second signature is characterized by more rounded, looped forms. 4. Slant & Writing Angle: Both signatures have a rightward slant, but the angle is more pronounced and consistent in the second signature. 5. Loops, Hooks & Flourishes: Both signatures start with a large loop, but the subsequent loops and flourishes differ significantly in shape and execution. 6. Alignment & Baseline Behavior: Both signatures maintain a generally straight baseline, but the first signature's baseline is more irregular due to the zigzag pattern. 7. Shape Repetition & Letterform Consistency: The repeated shapes in the central part of the first signature (zigzags) are not present in the second signature, which instead has more uniform, rounded forms. 8. Structural Consistency & Proportions: The overall structure and proportions differ, with the first signature being more angular and the second more rounded and flowing. While there are some superficial similarities (large initial loop, overall slant), the differences in stroke geometry, internal structure, and letterform construction outweigh the similarities.",
+      "usage": {
+        "input_tokens": 2580,
+        "output_tokens": 352,
+        "reasoning_tokens": 0,
+        "total_tokens": 2932
+      },
+      "elapsed_ms": 11703.0,
+      "error": null
+    },
+    {
+      "reference_filename": "VR2.jpg",
+      "test_filename": "VR1.jpg",
+      "signature_matched": true,
+      "confidence_score": 0.88,
+      "reasoning": "Both signatures display highly similar visual characteristics across multiple dimensions. Stroke flow and line continuity are consistent, with smooth, confident pen movements and similar sequencing. The pressure pattern and line weight are nearly identical, showing uniform thickness and emphasis on similar downstrokes. Curvature and stroke geometry match closely, with both signatures featuring a prominent initial loop, similar angular transitions, and matching curve radii. The slant and writing angle are both right-leaning and stable throughout. Loops, hooks, and flourishes are present in the same locations and constructed in a similar manner, especially the large initial loop and the horizontal cross-strokes. Alignment and baseline behavior are consistent, with both signatures adhering to a slightly rising baseline and similar vertical alignment. Shape repetition and letterform consistency are strong, with distinctive shapes and proportions repeated in both signatures. Minor natural variations exist, such as slight differences in the length of the horizontal strokes and the angle of the baseline, but these fall within expected handwriting variability. Overall, the signatures are visually very similar with only minor differences.",
+      "usage": {
+        "input_tokens": 2580,
+        "output_tokens": 237,
+        "reasoning_tokens": 0,
+        "total_tokens": 2817
+      },
+      "elapsed_ms": 10676.5,
+      "error": null
+    }
+  ],
+  "total_usage": {
+    "input_tokens": 5869,
+    "output_tokens": 732,
+    "reasoning_tokens": 0,
+    "total_tokens": 6601
+  },
+  "elapsed_ms": 14587.0
+}

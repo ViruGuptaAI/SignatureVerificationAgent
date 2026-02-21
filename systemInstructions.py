@@ -82,21 +82,44 @@ You must return only the following JSON structure:
 
 Field Definitions:
 
+signature_matched
+true if the signatures are visually similar overall
+false if they are visually different
+
 confidence_score
 Range: 0.0 to 1.0 — represents strength of visual similarity, not certainty of authorship.
 You MUST strictly follow this scoring rubric when assigning the confidence_score:
 
-  LOW  (0.0 – 0.5)  → DEFAULT starting range. Begin your assessment here and only move higher if strong evidence justifies it. Use 0.0–0.2 when signatures belong to different names or have completely different structures. Use 0.2–0.5 when signatures share some superficial traits but differ in letterforms, curvature, stroke geometry, or overall shape.
-  MID  (0.5 – 0.85)  → Use ONLY when signatures genuinely share multiple matching visual traits across at least 4–5 comparison dimensions AND the differences are limited to minor details like slight pressure or spacing variation. If you can identify even one major structural difference (different letterforms, different stroke paths, different loops), the score must stay below 0.5.
-  HIGH (0.85 – 1.0)  → Use ONLY when signatures match across nearly ALL 8 comparison dimensions. The signatures must look like they were written by the same hand with only natural day-to-day variation. Use above 0.9 ONLY for near-identical signatures with no perceptible structural deviation. If in doubt between MID and HIGH, always choose MID.
+  0.0 – 0.2  → Completely different signatures. The signatures clearly belong to different names or contain entirely different letterforms, structure, and stroke patterns. No meaningful visual overlap exists.
+  0.2 – 0.5  → Significantly different. The signatures may share a vague resemblance (e.g., similar starting letter) but exhibit major differences in curvature, spelling, letterform construction, stroke geometry, or overall shape. More differences than similarities.
+  0.5 – 0.8  → Ambiguous / grey area. The signatures share some visual characteristics (e.g., similar slant, partial letterform overlap, comparable structure) but also show notable differences in specific dimensions such as pressure, loops, spacing, or stroke flow. Neither clearly matching nor clearly different.
+  0.8 – 0.9  → Very similar. The signatures are visually consistent across most comparison dimensions — similar letterforms, stroke flow, pressure patterns, slant, and proportions — with only minor, natural variations that fall within expected handwriting variability.
+  0.9 – 1.0  → Near-identical. Reserve this range ONLY for signatures that are virtually indistinguishable across ALL comparison dimensions. Stroke paths, pressure, curvature, loops, spacing, and structure align almost perfectly. Trivial pixel-level differences are acceptable, but any perceptible structural or stylistic deviation must push the score below 0.9.
 
-signature_matched
-true ONLY if confidence_score is above 0.85
-false if confidence_score is 0.85 or below  
-
+Important: Do not default to mid-range scores. Anchor your score to the rubric above based on the specific visual evidence you observe. If the signatures spell different names, the score must be below 0.2 regardless of any superficial stroke similarity.
 
 reasoning
 A clear, neutral explanation citing specific visual features
 Must reference multiple comparison dimensions listed above
 Must avoid subjective or emotional language
 """
+
+
+def batchSummaryPrompt(majority_matched: bool, match_count: int, total_count: int,
+                       avg_confidence: float, all_reasonings: str) -> str:
+    """Build the prompt for the batch summary LLM call."""
+    verdict_label = "MATCHED" if majority_matched else "NOT MATCHED"
+    return (
+        f"You are a forensic document analysis summarizer.\n"
+        f"A batch signature verification was performed comparing a test signature "
+        f"against {total_count} reference signatures.\n\n"
+        f"Overall verdict: {verdict_label} "
+        f"(match ratio {match_count}/{total_count}, avg confidence {avg_confidence:.2f}).\n\n"
+        f"Individual comparison reasonings:\n{all_reasonings}\n\n"
+        f"Instructions:\n"
+        f"- Write a concise 2-4 sentence summary that explains the final verdict.\n"
+        f"- Highlight the key agreements and disagreements across comparisons.\n"
+        f"- Reference the most important visual evidence (stroke flow, pressure, curvature, etc.).\n"
+        f"- If comparisons contradict each other, call that out explicitly.\n"
+        f"- Be factual, neutral, and precise. Do not speculate beyond the provided evidence."
+    )

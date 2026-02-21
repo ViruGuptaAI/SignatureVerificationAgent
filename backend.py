@@ -6,7 +6,9 @@ import logging
 import mimetypes
 import os
 import time
+import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from openai import AsyncAzureOpenAI
 from azure.identity.aio import (
@@ -20,7 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Literal
 
-from systemInstructions import signatureMatcher
+from systemInstructions import signatureMatcher, batchSummaryPrompt
 from image_preprocessing import preprocess_signature_pair
 
 load_dotenv(override=True)
@@ -79,11 +81,13 @@ class BatchVerdict(BaseModel):
     avg_confidence: float = Field(..., ge=0.0, le=1.0)
     match_ratio: str = Field(..., description="e.g. '7/10'")
     decision_method: str = "majority_vote"
+    reasoning: str = Field(..., description="LLM-generated summary of all individual reasonings")
     inconclusive: bool = False
 
 
 class BatchCompareResponse(BaseModel):
     """Full batch API response."""
+    request_id: str = Field(..., description="Unique UUID for this invocation")
     verdict: BatchVerdict
     individual_results: list[IndividualResult]
     total_usage: dict | None = None
@@ -152,6 +156,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ---------------------------------------------------------------------------
+# Logs directory
+# ---------------------------------------------------------------------------
+
+LOGS_DIR = Path(__file__).parent / "logs"
+LOGS_DIR.mkdir(exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
@@ -482,8 +494,6 @@ async def compare_signatures_batch(
     ]
     individual_results: list[IndividualResult] = await asyncio.gather(*tasks)
 
-    total_elapsed = (time.perf_counter() - t0) * 1000
-
     # --- Aggregate results (majority vote) ---
     successful = [r for r in individual_results if r.error is None]
     if not successful:
@@ -493,24 +503,69 @@ async def compare_signatures_batch(
     total_count = len(successful)
     majority_matched = match_count > total_count / 2
 
-    # Average confidence of the winning side
-    winning_results = [r for r in successful if r.signature_matched == majority_matched]
-    avg_confidence = sum(r.confidence_score for r in winning_results) / len(winning_results)
+    # Average confidence across ALL comparisons (not just the winning side)
+    avg_confidence = sum(r.confidence_score for r in successful) / total_count
 
     # Flag as inconclusive if the split is nearly even (within 1 vote of 50/50)
-    inconclusive = abs(match_count - (total_count - match_count)) <= 1 and total_count > 2
+    inconclusive = abs(match_count - (total_count - match_count)) <= 1 and total_count >= 2
+
+    # --- Summarize all individual reasonings via LLM ---
+    reasoning_texts = []
+    for i, r in enumerate(successful):
+        label = "MATCHED" if r.signature_matched else "NOT MATCHED"
+        reasoning_texts.append(
+            f"Comparison {i+1} ({r.reference_filename} vs {r.test_filename}) — {label} ({r.confidence_score}): {r.reasoning}"
+        )
+    all_reasonings = "\n\n".join(reasoning_texts)
+
+    summary_prompt = batchSummaryPrompt(
+        majority_matched=majority_matched,
+        match_count=match_count,
+        total_count=total_count,
+        avg_confidence=avg_confidence,
+        all_reasonings=all_reasonings,
+    )
+
+    try:
+        summary_resp = await _client.responses.create(
+            model=model,
+            input=[{"role": "user", "content": summary_prompt}],
+            temperature=0,
+            store=False,
+        )
+        summary_reasoning = summary_resp.output_text.strip()
+        # Track summary usage
+        summary_usage = None
+        if summary_resp.usage:
+            su = summary_resp.usage
+            reasoning_tokens = getattr(
+                getattr(su, "output_tokens_details", None), "reasoning_tokens", 0
+            )
+            summary_usage = {
+                "input_tokens": su.input_tokens,
+                "output_tokens": su.output_tokens,
+                "reasoning_tokens": reasoning_tokens,
+                "total_tokens": su.total_tokens,
+            }
+    except Exception as exc:
+        logger.warning("Summary LLM call failed: %s — falling back to concatenation", exc)
+        summary_reasoning = all_reasonings
+        summary_usage = None
 
     verdict = BatchVerdict(
         signature_matched=majority_matched,
         avg_confidence=round(avg_confidence, 4),
         match_ratio=f"{match_count}/{total_count}",
         decision_method="majority_vote",
+        reasoning=summary_reasoning,
         inconclusive=inconclusive,
     )
 
-    # --- Aggregate usage ---
+    # --- Aggregate usage (include summary call) ---
     total_usage = None
     usages = [r.usage for r in successful if r.usage]
+    if summary_usage:
+        usages.append(summary_usage)
     if usages:
         total_usage = {
             "input_tokens": sum(u["input_tokens"] for u in usages),
@@ -519,17 +574,32 @@ async def compare_signatures_batch(
             "total_tokens": sum(u["total_tokens"] for u in usages),
         }
 
+    total_elapsed = (time.perf_counter() - t0) * 1000
+
+    request_id = str(uuid.uuid4())
+
     logger.info(
-        "--- Batch: %d references | verdict=%s | confidence=%.2f | match_ratio=%s | inconclusive=%s | %.0f ms ---",
-        total_count, majority_matched, avg_confidence, verdict.match_ratio, inconclusive, total_elapsed,
+        "--- Batch [%s]: %d references | verdict=%s | confidence=%.2f | match_ratio=%s | inconclusive=%s | %.0f ms ---",
+        request_id, total_count, majority_matched, avg_confidence, verdict.match_ratio, inconclusive, total_elapsed,
     )
 
-    return BatchCompareResponse(
+    response = BatchCompareResponse(
+        request_id=request_id,
         verdict=verdict,
         individual_results=individual_results,
         total_usage=total_usage,
         elapsed_ms=round(total_elapsed, 1),
     )
+
+    # --- Persist response log ---
+    try:
+        log_path = LOGS_DIR / f"{request_id}.json"
+        log_path.write_text(response.model_dump_json(indent=2), encoding="utf-8")
+        logger.info("--- Batch log saved: %s ---", log_path)
+    except Exception as exc:
+        logger.warning("Failed to write batch log: %s", exc)
+
+    return response
 
 
 @app.get("/health")
