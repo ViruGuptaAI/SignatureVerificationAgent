@@ -82,13 +82,18 @@ You must return only the following JSON structure:
 
 Field Definitions:
 
-signature_matched
-true if the signatures are visually similar overall
-false if they are visually different
-
 confidence_score
-Range: 0.0 (no visual similarity) to 1.0 (very high visual similarity)
-Represents strength of visual similarity, not certainty of authorship
+Range: 0.0 to 1.0 — represents strength of visual similarity, not certainty of authorship.
+You MUST strictly follow this scoring rubric when assigning the confidence_score:
+
+  LOW  (0.0 – 0.5)  → DEFAULT starting range. Begin your assessment here and only move higher if strong evidence justifies it. Use 0.0–0.2 when signatures belong to different names or have completely different structures. Use 0.2–0.5 when signatures share some superficial traits but differ in letterforms, curvature, stroke geometry, or overall shape.
+  MID  (0.5 – 0.85)  → Use ONLY when signatures genuinely share multiple matching visual traits across at least 4–5 comparison dimensions AND the differences are limited to minor details like slight pressure or spacing variation. If you can identify even one major structural difference (different letterforms, different stroke paths, different loops), the score must stay below 0.5.
+  HIGH (0.85 – 1.0)  → Use ONLY when signatures match across nearly ALL 8 comparison dimensions. The signatures must look like they were written by the same hand with only natural day-to-day variation. Use above 0.9 ONLY for near-identical signatures with no perceptible structural deviation. If in doubt between MID and HIGH, always choose MID.
+
+signature_matched
+true ONLY if confidence_score is above 0.85
+false if confidence_score is 0.85 or below  
+
 
 reasoning
 A clear, neutral explanation citing specific visual features
