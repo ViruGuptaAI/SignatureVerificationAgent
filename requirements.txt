@@ -1,0 +1,12 @@
+# Core
+openai>=2.9.0
+fastapi>=0.124.2
+uvicorn>=0.38.0
+python-dotenv>=1.2.1
+azure-identity>=1.26.0b1
+
+# Image preprocessing
+Pillow>=12.0.0
+
+# Testing / verification (optional)
+httpx>=0.28.1
