@@ -14,7 +14,7 @@ from app.models import (
     IndividualResult,
 )
 from app.services.comparison import compare_signatures
-from systemInstructions import batchSummaryPrompt
+from app.prompts import batchSummaryPrompt
 
 router = APIRouter()
 

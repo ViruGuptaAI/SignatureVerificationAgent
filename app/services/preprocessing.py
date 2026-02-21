@@ -125,8 +125,8 @@ if __name__ == "__main__":
     import os
 
     if len(sys.argv) < 2:
-        print("Usage: python image_preprocessing.py <image_path> [output_path]")
-        print("Example: python image_preprocessing.py Data/VR1.jpg Data/VR1_processed.png")
+        print("Usage: python -m app.services.preprocessing <image_path> [output_path]")
+        print("Example: python -m app.services.preprocessing Data/VR1.jpg Data/VR1_processed.png")
         sys.exit(1)
 
     src = sys.argv[1]

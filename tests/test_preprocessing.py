@@ -12,7 +12,7 @@ import io
 import pytest
 from PIL import Image
 
-from image_preprocessing import preprocess_signature, preprocess_signature_pair
+from app.services.preprocessing import preprocess_signature, preprocess_signature_pair
 
 
 # ---------------------------------------------------------------------------

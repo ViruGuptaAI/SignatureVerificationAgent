@@ -10,8 +10,8 @@ from fastapi import HTTPException
 from app.azure_client import get_client, encode_bytes
 from app.config import logger
 from app.models import SignatureResult, TimingMetrics, CompareResponse
-from image_preprocessing import preprocess_signature_pair
-from systemInstructions import signatureMatcher
+from app.services.preprocessing import preprocess_signature_pair
+from app.prompts import signatureMatcher
 
 
 async def compare_signatures(
