@@ -1,10 +1,15 @@
 *.env
 
 *.pyc
-
 __pycache__/
+.pytest_cache/
 
 .venv/
 .vscode/
 
 Data/
+Rough/
+Logs/
+verification_results.json
+
+Rough/
