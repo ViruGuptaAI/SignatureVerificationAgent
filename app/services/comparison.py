@@ -111,7 +111,7 @@ async def compare_signatures(
     if "gpt-5" in model.lower():
         common_kwargs["reasoning"] = {"effort": reasoning_effort}
     else:
-        common_kwargs["temperature"] = 0
+        common_kwargs["temperature"] = 0.1
 
     # --- Streaming call with timing instrumentation ---
     STREAM_TIMEOUT_SECONDS = int(os.getenv("STREAM_TIMEOUT_SECONDS", 60))

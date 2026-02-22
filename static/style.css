@@ -567,6 +567,12 @@ body {
     text-align: left;
     font-variant-numeric: tabular-nums;
 }
+.metric-value .info-tooltip.method-tip {
+    width: 320px;
+    text-align: left;
+    line-height: 1.45;
+    font-size: .78rem;
+}
 
 /* --- Waiting Note --- */
 .waiting-note {

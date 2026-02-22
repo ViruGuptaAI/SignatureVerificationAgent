@@ -277,7 +277,7 @@
                 ${metricHtml("Total Time", `${data.elapsed_ms.toFixed(0)} ms`)}
                 ${tokenMetric("Total Tokens", data.total_usage)}
                 ${costMetric(data.total_cost_inr)}
-                ${metricHtml("Method", v.decision_method)}
+                ${methodMetric(v.decision_method)}
             </div>
             ${individualsHtml}
         `;
@@ -394,7 +394,7 @@
                 ${metricHtml("Total Time", `${data.elapsed_ms.toFixed(0)} ms`)}
                 ${tokenMetric("Total Tokens", data.total_usage)}
                 ${costMetric(data.total_cost_inr)}
-                ${metricHtml("Method", v.decision_method)}
+                ${methodMetric(v.decision_method)}
             </div>
             ${individualsHtml}
         `;
@@ -515,6 +515,19 @@
         if (cost == null) return "";
         const formatted = cost < 0.01 ? `₹${cost.toFixed(4)}` : `₹${cost.toFixed(2)}`;
         return metricHtml("Est. Cost", formatted);
+    }
+
+    /** Render the decision-method metric with an ⓘ tooltip explaining the algorithm. */
+    function methodMetric(method) {
+        const tip = `<strong>How the verdict is decided</strong><br><br>`
+            + `<strong>1. Majority Vote</strong><br>`
+            + `Each reference signature is compared individually against the test signature. `
+            + `If more than half say &ldquo;match&rdquo;, the majority vote passes.<br><br>`
+            + `<strong>2. Confidence Gate (&ge; 0.8)</strong><br>`
+            + `The average confidence score across all comparisons must be at least 0.8.<br><br>`
+            + `<strong>Both gates must pass</strong> for the final verdict to be &ldquo;Match&rdquo;. `
+            + `If the majority says match but confidence is below 0.8, the result is marked <em>inconclusive</em>.`;
+        return `<div class="metric"><div class="metric-value">${escHtml(method)}<span class="info-btn" tabindex="0">&#9432;<span class="info-tooltip method-tip">${tip}</span></span></div><div class="metric-label">Method</div></div>`;
     }
 
     /** Render a Tokens metric with an ⓘ tooltip showing the input/output/cached/reasoning split. */

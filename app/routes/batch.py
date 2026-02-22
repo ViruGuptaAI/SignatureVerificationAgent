@@ -147,8 +147,16 @@ async def verify_signature_batch(
     # Average confidence across ALL comparisons
     avg_confidence = sum(r.confidence_score for r in successful) / total_count
 
+    # Two-gate verdict: majority vote AND avg confidence above threshold
+    confidence_threshold = 0.8
+    final_matched = majority_matched and avg_confidence >= confidence_threshold
+
     # Flag as inconclusive if the split is nearly even (within 1 vote of 50/50)
-    inconclusive = abs(match_count - (total_count - match_count)) <= 1 and total_count >= 2
+    # or if majority says match but confidence is too low
+    inconclusive = (
+        (abs(match_count - (total_count - match_count)) <= 1 and total_count >= 2)
+        or (majority_matched and avg_confidence < confidence_threshold)
+    )
 
     # --- Summarize all individual reasonings via LLM ---
     reasoning_texts = []
@@ -160,7 +168,7 @@ async def verify_signature_batch(
     all_reasonings = "\n\n".join(reasoning_texts)
 
     summary_prompt = batchSummaryPrompt(
-        majority_matched=majority_matched,
+        majority_matched=final_matched,
         match_count=match_count,
         total_count=total_count,
         avg_confidence=avg_confidence,
@@ -174,7 +182,7 @@ async def verify_signature_batch(
             summary_resp = await client.responses.create(
                 model=model,
                 input=[{"role": "user", "content": summary_prompt}],
-                temperature=0,
+                temperature=0.1,
                 store=False,
             )
         summary_reasoning = summary_resp.output_text.strip()
@@ -201,10 +209,10 @@ async def verify_signature_batch(
         summary_usage = None
 
     verdict = BatchVerdict(
-        signature_matched=majority_matched,
+        signature_matched=final_matched,
         avg_confidence=round(avg_confidence, 4),
         match_ratio=f"{match_count}/{total_count}",
-        decision_method="majority_vote",
+        decision_method="majority_vote + confidence_gate (≥0.8)",
         reasoning=summary_reasoning,
         inconclusive=inconclusive,
     )
