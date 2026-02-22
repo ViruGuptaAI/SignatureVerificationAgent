@@ -24,6 +24,7 @@ class CompareResponse(BaseModel):
     usage: dict | None = None
     timing: TimingMetrics
     elapsed_ms: float
+    cost_inr: float | None = Field(None, description="Estimated cost of this call in INR")
 
 
 class IndividualResult(BaseModel):
@@ -36,6 +37,7 @@ class IndividualResult(BaseModel):
     usage: dict | None = None
     elapsed_ms: float
     error: str | None = None
+    cost_inr: float | None = Field(None, description="Estimated cost of this call in INR")
 
 
 class BatchVerdict(BaseModel):
@@ -55,3 +57,4 @@ class BatchCompareResponse(BaseModel):
     individual_results: list[IndividualResult]
     total_usage: dict | None = None
     elapsed_ms: float
+    total_cost_inr: float | None = Field(None, description="Total estimated cost in INR for all comparisons + summary")

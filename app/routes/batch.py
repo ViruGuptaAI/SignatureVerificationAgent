@@ -7,7 +7,7 @@ from typing import Literal
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 
 from app.azure_client import get_client
-from app.config import ALLOWED_TYPES, ALLOWED_MODELS, MAX_IMAGE_SIZE, LOGS_DIR, logger
+from app.config import ALLOWED_TYPES, ALLOWED_MODELS, MAX_IMAGE_SIZE, LOGS_DIR, logger, calculate_cost_inr
 from app.models import (
     BatchCompareResponse,
     BatchVerdict,
@@ -115,6 +115,7 @@ async def verify_signature_batch(
                 reasoning=resp.result.reasoning,
                 usage=resp.usage,
                 elapsed_ms=resp.elapsed_ms,
+                cost_inr=resp.cost_inr,
             )
         except Exception as exc:
             return IndividualResult(
@@ -184,10 +185,14 @@ async def verify_signature_batch(
             reasoning_tokens = getattr(
                 getattr(su, "output_tokens_details", None), "reasoning_tokens", 0
             )
+            cached_tokens = getattr(
+                getattr(su, "input_tokens_details", None), "cached_tokens", 0
+            ) or 0
             summary_usage = {
                 "input_tokens": su.input_tokens,
                 "output_tokens": su.output_tokens,
                 "reasoning_tokens": reasoning_tokens,
+                "cached_tokens": cached_tokens,
                 "total_tokens": su.total_tokens,
             }
     except Exception as exc:
@@ -214,6 +219,7 @@ async def verify_signature_batch(
             "input_tokens": sum(u["input_tokens"] for u in usages),
             "output_tokens": sum(u["output_tokens"] for u in usages),
             "reasoning_tokens": sum(u["reasoning_tokens"] for u in usages),
+            "cached_tokens": sum(u.get("cached_tokens", 0) for u in usages),
             "total_tokens": sum(u["total_tokens"] for u in usages),
         }
 
@@ -226,12 +232,20 @@ async def verify_signature_batch(
         request_id, total_count, majority_matched, avg_confidence, verdict.match_ratio, inconclusive, total_elapsed,
     )
 
+    # --- Aggregate cost (individual comparisons + summary call) ---
+    individual_costs = [r.cost_inr for r in individual_results if r.cost_inr is not None]
+    summary_cost = calculate_cost_inr(summary_usage, model)
+    if summary_cost is not None:
+        individual_costs.append(summary_cost)
+    total_cost_inr = round(sum(individual_costs), 6) if individual_costs else None
+
     response = BatchCompareResponse(
         request_id=request_id,
         verdict=verdict,
         individual_results=individual_results,
         total_usage=total_usage,
         elapsed_ms=round(total_elapsed, 1),
+        total_cost_inr=total_cost_inr,
     )
 
     # --- Persist response log ---

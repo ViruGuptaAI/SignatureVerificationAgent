@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.azure_client import build_client, set_client
-from app.routes import compare, batch, health
+from app.routes import compare, batch, health, logs
 
 load_dotenv(override=True)
 
@@ -50,6 +50,7 @@ app.add_middleware(
 app.include_router(compare.router)
 app.include_router(batch.router)
 app.include_router(health.router)
+app.include_router(logs.router)
 
 # --- Serve frontend ---
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

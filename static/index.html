@@ -28,6 +28,7 @@
         <nav class="tabs">
             <button class="tab active" data-mode="single">Single Compare</button>
             <button class="tab" data-mode="batch">Batch Verify</button>
+            <button class="tab" data-mode="audit">Audit Log</button>
         </nav>
 
         <!-- Single Compare Mode -->
@@ -164,6 +165,23 @@
 
             <!-- Batch Result -->
             <div id="batch-result" class="result-card hidden"></div>
+        </section>
+
+        <!-- Audit Log Mode -->
+        <section id="mode-audit" class="mode">
+            <div class="audit-search">
+                <label for="audit-id">Request ID</label>
+                <div class="audit-input-row">
+                    <input type="text" id="audit-id" placeholder="e.g. 03e3b407-942f-452c-9f14-f044a31a876b" spellcheck="false" autocomplete="off" />
+                    <button class="btn-primary" id="btn-audit" disabled>
+                        <span class="btn-text">Look Up</span>
+                        <span class="btn-loading">
+                            <span class="spinner"></span> Loading…
+                        </span>
+                    </button>
+                </div>
+            </div>
+            <div id="audit-result" class="result-card hidden"></div>
         </section>
     </div>
 

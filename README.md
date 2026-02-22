@@ -16,6 +16,10 @@ Built with FastAPI, async Azure OpenAI streaming, and Entra ID authentication. D
 - **Health probes** — Liveness (`/health`) and readiness (`/health/ready`) endpoints for container orchestration.
 - **Structured output** — Pydantic models enforce JSON schema on every response; results are logged to `logs/` as JSON files.
 - **Azure AD authentication** — Uses `ManagedIdentityCredential` in Azure, falls back to `AzureCliCredential` locally.
+- **Web UI** — Built-in single-page frontend with drag-and-drop uploads, single compare and batch verify modes, and interactive result display.
+- **Markdown-rendered analysis** — LLM reasoning output is rendered with proper formatting (bold, headings, lists, inline code) instead of raw text.
+- **Audit log lookup** — Retrieve any previous batch result by request ID via the API or the built-in Audit Log tab in the Web UI.
+- **Cost estimation** — Per-call cost in INR calculated from model-specific token pricing (input/cached/output) configured in `.env` and displayed in the UI.
 
 ---
 
@@ -40,12 +44,18 @@ SignatureMatchingAgent/
 │   │   ├── __init__.py
 │   │   ├── compare.py          # POST /api/VerifySignature
 │   │   ├── batch.py            # POST /api/VerifySignatureBatch
-│   │   └── health.py           # GET /health, GET /health/ready
+   │   ├── health.py           # GET /health, GET /health/ready
+   │   └── logs.py             # GET /api/logs/{request_id}
 │   │
 │   └── services/
 │       ├── __init__.py
 │       ├── comparison.py       # Core compare_signatures logic (streaming, parsing)
 │       └── preprocessing.py    # Pillow image preprocessing pipeline
+│
+├── static/                     # Frontend assets (served at /static)
+│   ├── index.html              # Single-page UI (single compare + batch verify)
+│   ├── app.js                  # Frontend logic, markdown renderer, result display
+│   └── style.css               # Dark-theme styling, tooltips, responsive layout
 │
 ├── tests/                      # Test suite (48 tests)
 │   ├── __init__.py
@@ -216,6 +226,18 @@ Liveness probe — returns `{"status": "ok"}` if the server is running.
 
 Readiness probe — checks Azure OpenAI reachability and logs directory write access. Returns `200` if all checks pass, `503` if degraded.
 
+### `GET /api/logs/{request_id}`
+
+Retrieve a previously saved batch result by its UUID request ID. Useful for auditing and reviewing past comparisons.
+
+**Response:** Returns the full JSON log that was saved when the batch comparison was originally run (same schema as `POST /api/VerifySignatureBatch` response).
+
+| Status | Meaning |
+|---|---|
+| `200` | Log found and returned |
+| `400` | Invalid request ID format (not a UUID) |
+| `404` | No log found for the given ID |
+
 ---
 
 ## Image Preprocessing Pipeline
@@ -288,6 +310,17 @@ python -m pytest tests/ -v
 ## Swagger UI
 
 Once the server is running, open **http://localhost:8000/docs** for the interactive API documentation. All endpoints, parameters, and response schemas are documented there.
+
+---
+
+## Web UI
+
+The built-in frontend is served at **http://localhost:8000/static/index.html** and provides:
+
+- **Single Compare** — Upload two signatures via drag-and-drop or file picker, select model/reasoning/preprocessing options, and get a visual verdict with confidence bar and detailed analysis.
+- **Batch Verify** — Upload a test signature plus 2–10 reference signatures, view majority-vote verdict with expandable individual comparison results.
+- **Audit Log** — Enter a request ID to retrieve and display any previously saved batch result, with the same rich formatting as live results.
+- **Dark theme** — Responsive dark UI with animated confidence bars, verdict banners, and timing metrics.
 
 ---
 

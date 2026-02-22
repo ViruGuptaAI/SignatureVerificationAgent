@@ -8,7 +8,7 @@ from typing import Literal
 from fastapi import HTTPException
 
 from app.azure_client import get_client, encode_bytes
-from app.config import logger
+from app.config import logger, calculate_cost_inr
 from app.models import SignatureResult, TimingMetrics, CompareResponse
 from app.services.preprocessing import preprocess_signature_pair
 from app.prompts import signatureMatcher
@@ -163,10 +163,14 @@ async def compare_signatures(
         reasoning_tokens = getattr(
             getattr(u, "output_tokens_details", None), "reasoning_tokens", 0
         )
+        cached_tokens = getattr(
+            getattr(u, "input_tokens_details", None), "cached_tokens", 0
+        ) or 0
         usage = {
             "input_tokens": u.input_tokens,
             "output_tokens": u.output_tokens,
             "reasoning_tokens": reasoning_tokens,
+            "cached_tokens": cached_tokens,
             "total_tokens": u.total_tokens,
         }
 
@@ -195,6 +199,8 @@ async def compare_signatures(
         token_info,
     )
 
+    cost_inr = calculate_cost_inr(usage, model)
+
     return CompareResponse(
         image1=original_image1_name,
         image2=original_image2_name,
@@ -202,4 +208,5 @@ async def compare_signatures(
         usage=usage,
         timing=timing,
         elapsed_ms=round(ttlb_ms, 1),
+        cost_inr=cost_inr,
     )
