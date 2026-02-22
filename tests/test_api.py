@@ -120,7 +120,7 @@ class TestVerifySignatureBatch:
         assert "verdict" in data
         assert "individual_results" in data
         assert "request_id" in data
-        assert data["verdict"]["decision_method"] == "majority_vote"
+        assert data["verdict"]["decision_method"] == "majority_vote + confidence_gate (≥0.8)"
 
     def test_two_refs_minimum(self, test_client):
         resp = self._post_batch(test_client, num_refs=2)

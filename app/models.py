@@ -45,7 +45,7 @@ class BatchVerdict(BaseModel):
     signature_matched: bool
     avg_confidence: float = Field(..., ge=0.0, le=1.0)
     match_ratio: str = Field(..., description="e.g. '7/10'")
-    decision_method: str = "majority_vote"
+    decision_method: str = "majority_vote + confidence_gate (≥0.8)"
     reasoning: str = Field(..., description="LLM-generated summary of all individual reasonings")
     inconclusive: bool = False
 

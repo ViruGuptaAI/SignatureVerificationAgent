@@ -124,7 +124,7 @@ class TestBatchVerdict:
             signature_matched=True, avg_confidence=0.82,
             match_ratio="7/10", reasoning="Summary text",
         )
-        assert v.decision_method == "majority_vote"
+        assert v.decision_method == "majority_vote + confidence_gate (≥0.8)"
         assert v.inconclusive is False
 
     def test_inconclusive_flag(self):
