@@ -26,8 +26,8 @@
 
         <!-- Mode Tabs -->
         <nav class="tabs">
-            <button class="tab active" data-mode="single">Single Compare</button>
-            <button class="tab" data-mode="batch">Batch Verify</button>
+            <button class="tab active" data-mode="single">1:1 Verify</button>
+            <button class="tab" data-mode="batch">Verify Against References</button>
             <button class="tab" data-mode="audit">Audit Log</button>
         </nav>
 
@@ -62,7 +62,7 @@
                     <span>Model</span>
                     <select id="single-model">
                         <option value="gpt-4.1" selected>GPT-4.1</option>
-                        <option value="gpt-5.2">GPT-5.2</option>
+                        <!-- <option value="gpt-5.2">GPT-5.2</option> -->
                         <option value="gpt-5-mini">GPT-5 Mini</option>
                     </select>
                 </label>
@@ -133,7 +133,7 @@
                     <span>Model</span>
                     <select id="batch-model">
                         <option value="gpt-4.1" selected>GPT-4.1</option>
-                        <option value="gpt-5.2">GPT-5.2</option>
+                        <!-- <option value="gpt-5.2">GPT-5.2</option> -->
                         <option value="gpt-5-mini">GPT-5 Mini</option>
                     </select>
                 </label>
@@ -157,7 +157,7 @@
             </div>
 
             <button class="btn-primary" id="btn-batch" disabled>
-                <span class="btn-text">Verify Batch</span>
+                <span class="btn-text">Compare Signatures</span>
                 <span class="btn-loading">
                     <span class="spinner"></span> Verifying…
                 </span>

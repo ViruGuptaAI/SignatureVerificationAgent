@@ -254,7 +254,7 @@
                         <span>Match ratio: ${v.match_ratio}</span>
                         <span>Avg confidence: ${(v.avg_confidence * 100).toFixed(1)}%</span>
                         <span class="id-with-info">ID: ${data.request_id}
-                            <span class="info-btn" tabindex="0">&#9432;<span class="info-tooltip">Save this ID to look up your result later in the Audit Log tab. It is the unique identifier for this batch comparison.</span></span>
+                            <span class="info-btn" tabindex="0">&#9432;<span class="info-tooltip">Save this ID to look up your result later in the Audit Log tab. It is the unique identifier for this verification run.</span></span>
                         </span>
                     </div>
                 </div>
@@ -365,7 +365,7 @@
         }
 
         card.innerHTML = `
-            <div class="audit-badge">Batch Result — ${escHtml(data.request_id)}</div>
+            <div class="audit-badge">Verification Result — ${escHtml(data.request_id)}</div>
             <div class="verdict-banner ${verdictClass}">
                 <div class="verdict-icon">${verdictIcon}</div>
                 <div class="verdict-text">
