@@ -1,6 +1,8 @@
 """
-Thin entry point — kept for backward compatibility.
-Run:  python backend.py   or   uvicorn app.main:app
+Local development entry point.
+
+  Local:  python backend.py
+  Azure:  Configured via startup command (see startup.txt)
 """
 
 from app.main import app  

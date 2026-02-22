@@ -46,7 +46,7 @@ def build_client() -> AsyncAzureOpenAI:
             _get_credential(), "https://cognitiveservices.azure.com/.default"
         ),
         api_version="2025-03-01-preview",
-        max_retries=int(os.getenv("AZURE_MAX_RETRIES", 3)),
+        max_retries=int(os.getenv("AZURE_MAX_RETRIES", 10)),
     )
 
 
@@ -54,7 +54,7 @@ def build_client() -> AsyncAzureOpenAI:
 # Utility
 # ---------------------------------------------------------------------------
 
-
+# For image to base64 conversion 
 def encode_bytes(data: bytes, filename: str) -> str:
     """Return a base64 data-URI from raw bytes."""
     mime, _ = mimetypes.guess_type(filename)

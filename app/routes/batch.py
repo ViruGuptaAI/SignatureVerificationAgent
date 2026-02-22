@@ -13,7 +13,7 @@ from app.models import (
     BatchVerdict,
     IndividualResult,
 )
-from app.services.comparison import compare_signatures
+from app.services.comparison import compare_signatures, get_llm_semaphore
 from app.prompts import batchSummaryPrompt
 
 router = APIRouter()
@@ -169,12 +169,13 @@ async def verify_signature_batch(
     client = get_client()
 
     try:
-        summary_resp = await client.responses.create(
-            model=model,
-            input=[{"role": "user", "content": summary_prompt}],
-            temperature=0,
-            store=False,
-        )
+        async with get_llm_semaphore():
+            summary_resp = await client.responses.create(
+                model=model,
+                input=[{"role": "user", "content": summary_prompt}],
+                temperature=0,
+                store=False,
+            )
         summary_reasoning = summary_resp.output_text.strip()
         # Track summary usage
         summary_usage = None

@@ -1,15 +1,18 @@
+# Environment variables
 *.env
 
+# Python
 *.pyc
 __pycache__/
 .pytest_cache/
 
+# Virtual environment
 .venv/
+
+# IDE
 .vscode/
 
+# Project data & output
 Data/
-Rough/
 Logs/
-verification_results.json
-
 Rough/

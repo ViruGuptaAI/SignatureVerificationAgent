@@ -1,13 +1,18 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.azure_client import build_client, set_client
 from app.routes import compare, batch, health
 
 load_dotenv(override=True)
+
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 
 # ---------------------------------------------------------------------------
@@ -45,3 +50,11 @@ app.add_middleware(
 app.include_router(compare.router)
 app.include_router(batch.router)
 app.include_router(health.router)
+
+# --- Serve frontend ---
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+
+@app.get("/")
+async def root():
+    return FileResponse(STATIC_DIR / "index.html")

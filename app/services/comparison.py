@@ -13,6 +13,19 @@ from app.models import SignatureResult, TimingMetrics, CompareResponse
 from app.services.preprocessing import preprocess_signature_pair
 from app.prompts import signatureMatcher
 
+# ---------------------------------------------------------------------------
+# Global semaphore — caps concurrent LLM calls across all requests to stay
+# within the TPM budget.  30 users × 10 refs = 300 parallel calls without
+# this gate; the semaphore serialises overflow so retries stay manageable.
+# ---------------------------------------------------------------------------
+
+_llm_semaphore = asyncio.Semaphore(int(os.getenv("MAX_CONCURRENT_LLM_CALLS", "20")))
+
+
+def get_llm_semaphore() -> asyncio.Semaphore:
+    """Expose the semaphore so routes (e.g. batch summary) can reuse it."""
+    return _llm_semaphore
+
 
 async def compare_signatures(
     image1_bytes: bytes,
@@ -105,26 +118,27 @@ async def compare_signatures(
     t0 = time.perf_counter()
 
     try:
-        stream = await asyncio.wait_for(
-            client.responses.create(**common_kwargs, stream=True),
-            timeout=STREAM_TIMEOUT_SECONDS,
-        )
-        async with stream as stream:
-            stream_opened_ms = (time.perf_counter() - t0) * 1000
+        async with _llm_semaphore:
+            stream = await asyncio.wait_for(
+                client.responses.create(**common_kwargs, stream=True),
+                timeout=STREAM_TIMEOUT_SECONDS,
+            )
+            async with stream as stream:
+                stream_opened_ms = (time.perf_counter() - t0) * 1000
 
-            ttft_ms: float | None = None
-            final_response = None
-            collected_text = ""
+                ttft_ms: float | None = None
+                final_response = None
+                collected_text = ""
 
-            async for event in stream:
-                if (time.perf_counter() - t0) > STREAM_TIMEOUT_SECONDS:
-                    raise asyncio.TimeoutError()
-                if event.type == "response.output_text.delta":
-                    if ttft_ms is None:
-                        ttft_ms = (time.perf_counter() - t0) * 1000 - stream_opened_ms
-                    collected_text += event.delta
-                elif event.type == "response.completed":
-                    final_response = event.response
+                async for event in stream:
+                    if (time.perf_counter() - t0) > STREAM_TIMEOUT_SECONDS:
+                        raise asyncio.TimeoutError()
+                    if event.type == "response.output_text.delta":
+                        if ttft_ms is None:
+                            ttft_ms = (time.perf_counter() - t0) * 1000 - stream_opened_ms
+                        collected_text += event.delta
+                    elif event.type == "response.completed":
+                        final_response = event.response
     except asyncio.TimeoutError:
         raise HTTPException(
             status_code=504,
