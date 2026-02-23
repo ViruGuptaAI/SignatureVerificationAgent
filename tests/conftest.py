@@ -163,7 +163,15 @@ def test_client(mock_openai_client):
     No real credentials or network calls needed.
     """
     # Patch the client before importing the app (lifespan would call build_client)
-    with patch("app.azure_client.build_client", return_value=mock_openai_client):
+    with (
+        patch("app.azure_client.build_client", return_value=mock_openai_client),
+        # Mock blob storage so tests never hit real Azure Blob Storage
+        patch("app.services.comparison.upload_log", new_callable=AsyncMock),
+        patch("app.routes.batch.upload_log", new_callable=AsyncMock),
+        patch("app.routes.logs.download_log", new_callable=AsyncMock, return_value=None),
+        patch("app.routes.health.check_blob_health", new_callable=AsyncMock, return_value="ok"),
+        patch("app.main.close_blob_client", new_callable=AsyncMock),
+    ):
         from app.main import app
         # Manually set the client so routes can use get_client()
         from app.azure_client import set_client
