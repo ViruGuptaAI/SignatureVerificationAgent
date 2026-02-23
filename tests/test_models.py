@@ -71,6 +71,7 @@ class TestTimingMetrics:
 class TestCompareResponse:
     def test_full_response(self):
         resp = CompareResponse(
+            request_id="00000000-0000-0000-0000-000000000001",
             image1="ref.jpg",
             image2="test.jpg",
             result=SignatureResult(signature_matched=True, confidence_score=0.8, reasoning="ok"),
@@ -83,6 +84,7 @@ class TestCompareResponse:
 
     def test_usage_optional(self):
         resp = CompareResponse(
+            request_id="00000000-0000-0000-0000-000000000002",
             image1="a.png", image2="b.png",
             result=SignatureResult(signature_matched=False, confidence_score=0.1, reasoning="no"),
             usage=None,
@@ -124,7 +126,7 @@ class TestBatchVerdict:
             signature_matched=True, avg_confidence=0.82,
             match_ratio="7/10", reasoning="Summary text",
         )
-        assert v.decision_method == "majority_vote + confidence_gate (≥0.8)"
+        assert v.decision_method == "Majority Vote"
         assert v.inconclusive is False
 
     def test_inconclusive_flag(self):

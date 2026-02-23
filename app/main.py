@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.azure_client import build_client, set_client
+from app.services.blob_storage import close_blob_client
 from app.routes import compare, batch, health, logs
 
 load_dotenv(override=True)
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
     yield
     await client.close()
     set_client(None)
+    await close_blob_client()
 
 
 # ---------------------------------------------------------------------------

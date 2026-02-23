@@ -5,6 +5,7 @@ uvicorn>=0.38.0
 gunicorn>=23.0.0
 python-dotenv>=1.2.1
 azure-identity>=1.26.0b1
+azure-storage-blob>=12.20.0
 python-multipart>=0.0.5
 aiohttp>=3.9.0
 

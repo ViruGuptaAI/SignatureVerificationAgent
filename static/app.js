@@ -5,6 +5,13 @@
 (() => {
     "use strict";
 
+    // ---- Verification disclaimer ----
+    const VERIFICATION_NOTE = `
+        <div class="verification-note">
+            <span class="note-icon">&#9888;</span>
+            <p><strong>Disclaimer:</strong> This is a <strong>Level 1</strong> automated verification based solely on visual similarity using LLM vision models. Results are indicative and should not be treated as conclusive. A <strong>Human-in-the-Loop</strong> review is strongly recommended as a second level of verification. For improved accuracy, use the <em>Verify Against References</em> feature with multiple ground-truth samples.</p>
+        </div>`;
+
     // ---- Tab switching ----
     const tabs = document.querySelectorAll(".tab");
     const modes = document.querySelectorAll(".mode");
@@ -80,6 +87,10 @@
                     <h2>${verdictLabel}</h2>
                     <div class="verdict-meta">
                         <span>${data.image1} vs ${data.image2}</span>
+                        <span class="id-with-info">ID: ${data.request_id}
+                            <button class="copy-btn" title="Copy ID" onclick="navigator.clipboard.writeText('${data.request_id}').then(()=>{this.textContent='✓';setTimeout(()=>this.textContent='⧉',1200)})">⧉</button>
+                            <span class="info-btn" tabindex="0">&#9432;<span class="info-tooltip">Save this ID to look up your result later in the Audit Log tab. It is the unique identifier for this verification run.</span></span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -96,6 +107,7 @@
                 <h3>Analysis</h3>
                 <div class="md-content">${mdToHtml(r.reasoning)}</div>
             </div>
+            ${VERIFICATION_NOTE}
             <div class="metrics-row">
                 ${metricHtml("TTFB", `${data.timing.ttfb_ms.toFixed(0)} ms`)}
                 ${metricHtml("TTFT", `${data.timing.ttft_ms.toFixed(0)} ms`)}
@@ -254,6 +266,7 @@
                         <span>Match ratio: ${v.match_ratio}</span>
                         <span>Avg confidence: ${(v.avg_confidence * 100).toFixed(1)}%</span>
                         <span class="id-with-info">ID: ${data.request_id}
+                            <button class="copy-btn" title="Copy ID" onclick="navigator.clipboard.writeText('${data.request_id}').then(()=>{this.textContent='✓';setTimeout(()=>this.textContent='⧉',1200)})">⧉</button>
                             <span class="info-btn" tabindex="0">&#9432;<span class="info-tooltip">Save this ID to look up your result later in the Audit Log tab. It is the unique identifier for this verification run.</span></span>
                         </span>
                     </div>
@@ -272,6 +285,7 @@
                 <h3>Summary</h3>
                 <div class="md-content">${mdToHtml(v.reasoning)}</div>
             </div>
+            ${VERIFICATION_NOTE}
             <div class="metrics-row">
                 ${metricHtml("Comparisons", data.individual_results.length)}
                 ${metricHtml("Total Time", `${data.elapsed_ms.toFixed(0)} ms`)}
@@ -389,6 +403,7 @@
                 <h3>Summary</h3>
                 <div class="md-content">${mdToHtml(v.reasoning)}</div>
             </div>
+            ${VERIFICATION_NOTE}
             <div class="metrics-row">
                 ${metricHtml("Comparisons", data.individual_results ? data.individual_results.length : "—")}
                 ${metricHtml("Total Time", `${data.elapsed_ms.toFixed(0)} ms`)}
@@ -409,7 +424,7 @@
         const verdictIcon = r.signature_matched ? "✓" : "✗";
 
         card.innerHTML = `
-            <div class="audit-badge">Single Compare Result</div>
+            <div class="audit-badge">Verification Result — ${escHtml(data.request_id)}</div>
             <div class="verdict-banner ${verdictClass}">
                 <div class="verdict-icon">${verdictIcon}</div>
                 <div class="verdict-text">
@@ -432,6 +447,7 @@
                 <h3>Analysis</h3>
                 <div class="md-content">${mdToHtml(r.reasoning)}</div>
             </div>
+            ${VERIFICATION_NOTE}
             <div class="metrics-row">
                 ${data.elapsed_ms ? metricHtml("Total", `${data.elapsed_ms.toFixed(0)} ms`) : ""}
                 ${tokenMetric("Tokens", data.usage)}
@@ -519,14 +535,9 @@
 
     /** Render the decision-method metric with an ⓘ tooltip explaining the algorithm. */
     function methodMetric(method) {
-        const tip = `<strong>How the verdict is decided</strong><br><br>`
-            + `<strong>1. Majority Vote</strong><br>`
-            + `Each reference signature is compared individually against the test signature. `
-            + `If more than half say &ldquo;match&rdquo;, the majority vote passes.<br><br>`
-            + `<strong>2. Confidence Gate (&ge; 0.8)</strong><br>`
-            + `The average confidence score across all comparisons must be at least 0.8.<br><br>`
-            + `<strong>Both gates must pass</strong> for the final verdict to be &ldquo;Match&rdquo;. `
-            + `If the majority says match but confidence is below 0.8, the result is marked <em>inconclusive</em>.`;
+        const tip = `<strong>Majority Vote</strong> — more than half of comparisons must say match.<br>`
+            + `<strong>Confidence Gate</strong> — avg confidence must be ≥ 0.8.<br>`
+            + `Both must pass. Otherwise marked <em>inconclusive</em>.`;
         return `<div class="metric"><div class="metric-value">${escHtml(method)}<span class="info-btn" tabindex="0">&#9432;<span class="info-tooltip method-tip">${tip}</span></span></div><div class="metric-label">Method</div></div>`;
     }
 

@@ -7,7 +7,8 @@ from typing import Literal
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 
 from app.azure_client import get_client
-from app.config import ALLOWED_TYPES, ALLOWED_MODELS, MAX_IMAGE_SIZE, LOGS_DIR, logger, calculate_cost_inr
+from app.config import ALLOWED_TYPES, ALLOWED_MODELS, MAX_IMAGE_SIZE, logger, calculate_cost_inr
+from app.services.blob_storage import upload_log
 from app.models import (
     BatchCompareResponse,
     BatchVerdict,
@@ -212,7 +213,7 @@ async def verify_signature_batch(
         signature_matched=final_matched,
         avg_confidence=round(avg_confidence, 4),
         match_ratio=f"{match_count}/{total_count}",
-        decision_method="majority_vote + confidence_gate (≥0.8)",
+        decision_method="Majority Vote",
         reasoning=summary_reasoning,
         inconclusive=inconclusive,
     )
@@ -256,12 +257,10 @@ async def verify_signature_batch(
         total_cost_inr=total_cost_inr,
     )
 
-    # --- Persist response log ---
+    # --- Persist response log to blob storage ---
     try:
-        log_path = LOGS_DIR / f"{request_id}.json"
-        log_path.write_text(response.model_dump_json(indent=2), encoding="utf-8")
-        logger.info("--- Batch log saved: %s ---", log_path)
+        await upload_log(request_id, response.model_dump_json(indent=2))
     except Exception as exc:
-        logger.warning("Failed to write batch log: %s", exc)
+        logger.warning("Failed to upload batch log to blob: %s", exc)
 
     return response

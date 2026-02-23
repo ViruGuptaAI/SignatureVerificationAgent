@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from app.azure_client import get_client
-from app.config import LOGS_DIR
+from app.services.blob_storage import check_blob_health
 
 router = APIRouter()
 
@@ -15,7 +15,7 @@ async def health():
 
 @router.get("/health/ready")
 async def readiness():
-    """Readiness probe — confirms Azure OpenAI is reachable and logs dir is writable."""
+    """Readiness probe — confirms Azure OpenAI and Blob Storage are reachable."""
     checks = {}
 
     # 1. Azure OpenAI client
@@ -26,14 +26,11 @@ async def readiness():
     except Exception as exc:
         checks["azure_openai"] = f"error: {exc}"
 
-    # 2. Logs directory writable
+    # 2. Azure Blob Storage
     try:
-        test_file = LOGS_DIR / ".health_check"
-        test_file.write_text("ok", encoding="utf-8")
-        test_file.unlink()
-        checks["logs_dir"] = "ok"
+        checks["blob_storage"] = await check_blob_health()
     except Exception as exc:
-        checks["logs_dir"] = f"error: {exc}"
+        checks["blob_storage"] = f"error: {exc}"
 
     all_ok = all(v == "ok" for v in checks.values())
     return JSONResponse(

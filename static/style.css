@@ -447,6 +447,19 @@ body {
     gap: 4px;
     word-break: break-all;
 }
+.copy-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 4px;
+    color: inherit;
+    font-size: .8rem;
+    cursor: pointer;
+    padding: 1px 5px;
+    line-height: 1;
+    opacity: .6;
+    transition: opacity .15s, border-color .15s;
+}
+.copy-btn:hover { opacity: 1; border-color: rgba(255,255,255,.5); }
 .verdict-meta .info-btn {
     position: relative;
     font-size: .8rem;
@@ -531,6 +544,37 @@ body {
     line-height: 1.6;
 }
 
+/* Verification disclaimer note */
+.verification-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    padding: 14px 24px;
+    background: rgba(255, 193, 7, .08);
+    border-top: 1px solid rgba(255, 193, 7, .18);
+    border-bottom: 1px solid var(--border);
+}
+.verification-note .note-icon {
+    font-size: 1.1rem;
+    color: #f0ad4e;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.verification-note p {
+    font-size: .8rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+    margin: 0;
+}
+.verification-note strong {
+    color: var(--text);
+}
+.verification-note em {
+    color: var(--accent);
+    font-style: italic;
+}
+
 /* Metrics row */
 .metrics-row {
     display: flex;
@@ -568,7 +612,7 @@ body {
     font-variant-numeric: tabular-nums;
 }
 .metric-value .info-tooltip.method-tip {
-    width: 320px;
+    width: 250px;
     text-align: left;
     line-height: 1.45;
     font-size: .78rem;

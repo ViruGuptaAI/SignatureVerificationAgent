@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import time
+import uuid
 from typing import Literal
 
 from fastapi import HTTPException
@@ -10,6 +11,7 @@ from fastapi import HTTPException
 from app.azure_client import get_client, encode_bytes
 from app.config import logger, calculate_cost_inr
 from app.models import SignatureResult, TimingMetrics, CompareResponse
+from app.services.blob_storage import upload_log
 from app.services.preprocessing import preprocess_signature_pair
 from app.prompts import signatureMatcher
 
@@ -201,7 +203,15 @@ async def compare_signatures(
 
     cost_inr = calculate_cost_inr(usage, model)
 
-    return CompareResponse(
+    request_id = str(uuid.uuid4())
+    logger.info(
+        "--- Single [%s]: %s vs %s | matched=%s | confidence=%.2f | %.0f ms ---",
+        request_id, original_image1_name, original_image2_name,
+        result.signature_matched, result.confidence_score, ttlb_ms,
+    )
+
+    response = CompareResponse(
+        request_id=request_id,
         image1=original_image1_name,
         image2=original_image2_name,
         result=result,
@@ -210,3 +220,11 @@ async def compare_signatures(
         elapsed_ms=round(ttlb_ms, 1),
         cost_inr=cost_inr,
     )
+
+    # --- Persist response log to blob storage ---
+    try:
+        await upload_log(request_id, response.model_dump_json(indent=2))
+    except Exception as exc:
+        logger.warning("Failed to upload single log to blob: %s", exc)
+
+    return response

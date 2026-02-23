@@ -18,6 +18,7 @@ class TimingMetrics(BaseModel):
 
 class CompareResponse(BaseModel):
     """Full API response including usage metadata."""
+    request_id: str = Field(..., description="Unique UUID for this invocation")
     image1: str = Field(..., description="Filename of the first image sent to the model")
     image2: str = Field(..., description="Filename of the second image sent to the model")
     result: SignatureResult
@@ -45,7 +46,7 @@ class BatchVerdict(BaseModel):
     signature_matched: bool
     avg_confidence: float = Field(..., ge=0.0, le=1.0)
     match_ratio: str = Field(..., description="e.g. '7/10'")
-    decision_method: str = "majority_vote + confidence_gate (≥0.8)"
+    decision_method: str = "Majority Vote"
     reasoning: str = Field(..., description="LLM-generated summary of all individual reasonings")
     inconclusive: bool = False
 
