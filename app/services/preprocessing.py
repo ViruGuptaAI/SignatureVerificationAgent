@@ -114,34 +114,3 @@ def _autocrop(img: Image.Image, padding: int = 20) -> Image.Image:
     lower = min(img.height, lower + padding)
 
     return img.crop((left, upper, right, lower))
-
-
-# ---------------------------------------------------------------------------
-# Quick visual check (run this file directly)
-# ---------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    import sys
-    import os
-
-    if len(sys.argv) < 2:
-        print("Usage: python -m app.services.preprocessing <image_path> [output_path]")
-        print("Example: python -m app.services.preprocessing Data/VR1.jpg Data/VR1_processed.png")
-        sys.exit(1)
-
-    src = sys.argv[1]
-    dst = sys.argv[2] if len(sys.argv) > 2 else os.path.splitext(src)[0] + "_processed.png"
-
-    with open(src, "rb") as f:
-        raw = f.read()
-
-    processed = preprocess_signature(raw)
-
-    with open(dst, "wb") as f:
-        f.write(processed)
-
-    raw_kb = len(raw) / 1024
-    proc_kb = len(processed) / 1024
-    print(f"Original : {raw_kb:,.1f} KB")
-    print(f"Processed: {proc_kb:,.1f} KB  ({proc_kb/raw_kb*100:.0f}% of original)")
-    print(f"Saved to : {dst}")

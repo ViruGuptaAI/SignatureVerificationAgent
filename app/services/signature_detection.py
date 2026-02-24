@@ -1,16 +1,17 @@
 """
 Signature detection and cropping using Azure AI Document Intelligence.
 
-Uses the prebuilt-layout model with the **signatures** add-on feature to:
-1. Detect whether an uploaded image actually contains a handwritten signature.
-2. Extract the bounding region of the detected signature.
-3. Crop the image to the signature area (with configurable padding).
+Uses the prebuilt-layout model to detect handwritten signatures via a
+3-strategy cascade:
+  A. page.signatures (future API versions)
+  B. Handwriting style detection (is_handwritten spans → word polygons)
+  C. Pillow/numpy ink-region fallback
 
-This runs BEFORE grayscaling / LLM comparison so the downstream pipeline
-only receives a tightly-cropped signature region.
+Detected regions are cropped (with padding) before being passed to the
+preprocessing + LLM comparison pipeline.
 
 Requires:
-    pip install azure-ai-documentintelligence
+    pip install azure-ai-documentintelligence numpy
     Environment variable: DOCUMENT_INTELLIGENCE_ENDPOINT
 """
 
@@ -19,7 +20,7 @@ from __future__ import annotations
 import base64
 import io
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from PIL import Image
 
@@ -107,28 +108,6 @@ async def detect_and_crop_signature(
         # ----- Find the best signature across all pages ----- #
         if not result.pages:
             return SignatureDetectionResult(signature_found=False)
-
-        # Debug: log what the API returned
-        for page in result.pages:
-            sigs = getattr(page, "signatures", None)
-            logger.debug(
-                "Page %s: unit=%s, width=%s, height=%s, signatures=%s, words=%d, lines=%d",
-                getattr(page, "page_number", "?"),
-                getattr(page, "unit", "?"),
-                getattr(page, "width", "?"),
-                getattr(page, "height", "?"),
-                sigs,
-                len(getattr(page, "words", None) or []),
-                len(getattr(page, "lines", None) or []),
-            )
-        styles = getattr(result, "styles", None) or []
-        for style in styles:
-            logger.debug(
-                "Style: is_handwritten=%s, confidence=%s, spans=%s",
-                getattr(style, "is_handwritten", None),
-                getattr(style, "confidence", None),
-                getattr(style, "spans", None),
-            )
 
         best_sig = None
         best_page = None
@@ -570,47 +549,4 @@ def _crop_image(
     return buf.getvalue(), (left, top, right, bottom)
 
 
-# ---------------------------------------------------------------------------
-# Quick standalone test (run this file directly)
-# ---------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    import sys
-    import asyncio
-    from dotenv import load_dotenv
-
-    load_dotenv(override=True)
-
-    # Minimal logger setup for standalone run
-    import logging
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(name)s] %(message)s")
-
-    if len(sys.argv) < 2:
-        print("Usage: python -m app.services.signature_detection <image_path> [output_path]")
-        print("Example: python -m app.services.signature_detection Data/RSP1.jpg Data/RSP1_cropped.png")
-        sys.exit(1)
-
-    src = sys.argv[1]
-    dst = sys.argv[2] if len(sys.argv) > 2 else os.path.splitext(src)[0] + "_sig_cropped.png"
-
-    with open(src, "rb") as f:
-        raw = f.read()
-
-    print(f"Input : {src} ({len(raw) / 1024:.1f} KB)")
-    print(f"Calling Document Intelligence...")
-
-    result = asyncio.run(detect_and_crop_signature(raw))
-
-    print(f"  signature_found : {result.signature_found}")
-    print(f"  confidence      : {result.confidence:.2f}")
-    print(f"  bbox (pixels)   : {result.bbox}")
-    print(f"  cropped         : {'Yes' if result.cropped_bytes else 'No'}")
-
-    if result.cropped_bytes:
-        with open(dst, "wb") as f:
-            f.write(result.cropped_bytes)
-        print(f"  cropped size    : {len(result.cropped_bytes) / 1024:.1f} KB")
-        print(f"  saved to        : {dst}")
-    else:
-        print("  No cropped image produced.")
 
