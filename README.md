@@ -37,6 +37,7 @@ python backend.py          # starts on http://localhost:8000
 
 - **1:1 verify** — Two images → verdict + confidence + reasoning
 - **Verify against references** — One test vs 2–10 references, majority-vote aggregation, LLM summary
+- **Signature detection & cropping** — Optional Azure Document Intelligence integration to auto-detect and crop signature regions from full documents, cheques, or forms before comparison (toggle in UI)
 - **Image preprocessing** — Grayscale → denoise → autocrop → resize (optional, on by default)
 - **Model selection** — `gpt-4.1` or `gpt-5-mini` per request
 - **Token & cost tracking** — Per-call token breakdown and INR cost estimation
@@ -67,3 +68,5 @@ python backend.py          # starts on http://localhost:8000
 | References per request | 2–10 |
 | Stream timeout | 60 s |
 | Confidence range | 0.0–1.0 |
+
+---

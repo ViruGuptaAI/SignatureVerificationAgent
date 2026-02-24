@@ -9,8 +9,12 @@ azure-storage-blob>=12.20.0
 python-multipart>=0.0.5
 aiohttp>=3.9.0
 
+# Document Intelligence (signature detection)
+azure-ai-documentintelligence>=1.0.0
+
 # Image preprocessing
 Pillow>=12.0.0
+numpy>=1.26.0
 
 # Testing
 httpx>=0.28.1

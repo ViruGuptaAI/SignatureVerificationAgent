@@ -1,21 +1,22 @@
 # Testing
 
-48 tests total: unit, integration, and E2E.
+55+ tests total: unit, integration, and E2E.
 
 ---
 
 ## Offline Tests (no server or Azure needed)
 
 ```bash
-python -m pytest tests/test_models.py tests/test_preprocessing.py tests/test_config.py tests/test_api.py -v
+python -m pytest tests/test_models.py tests/test_preprocessing.py tests/test_config.py tests/test_api.py tests/test_signature_detection.py -v
 ```
 
 | File | Count | What it covers |
 |---|---|---|
-| `test_models.py` | 14 | Pydantic model validation, edge cases, serialisation |
+| `test_models.py` | 16 | Pydantic model validation incl. `SignatureDetectionInfo`, edge cases, serialisation |
 | `test_preprocessing.py` | 12 | Pillow pipeline steps, EXIF, grayscale, crop, resize |
 | `test_config.py` | 7 | Constants, logger setup, logs directory creation |
-| `test_api.py` | 13 | All API routes with a mocked OpenAI client |
+| `test_api.py` | 15 | All API routes with a mocked OpenAI client, `detect_signature` param |
+| `test_signature_detection.py` | 7 | Signature detection strategies, format conversion, ink fallback |
 
 ---
 
@@ -46,5 +47,5 @@ python -m pytest tests/ -v
 ## Before Pushing
 
 ```bash
-python -m pytest tests/test_models.py tests/test_preprocessing.py tests/test_config.py tests/test_api.py -v
+python -m pytest tests/test_models.py tests/test_preprocessing.py tests/test_config.py tests/test_api.py tests/test_signature_detection.py -v
 ```

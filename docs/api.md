@@ -13,6 +13,7 @@ Compare two signature images.
 | `image1` | `file` (required) | — | First signature image |
 | `image2` | `file` (required) | — | Second signature image |
 | `preprocess` | `bool` | `true` | Apply image preprocessing pipeline |
+| `detect_signature` | `bool` | `false` | Use Document Intelligence to detect and crop signatures before comparison |
 | `model` | `string` | `gpt-4.1` | Model: `gpt-4.1`, `gpt-5-mini` |
 | `reasoning_effort` | `string` | `medium` | For GPT-5 models: `low`, `medium`, `high` |
 
@@ -41,7 +42,8 @@ Compare two signature images.
     "ttlb_ms": 2100.3
   },
   "elapsed_ms": 2250.1,
-  "cost_inr": 0.0523
+  "cost_inr": 0.0523,
+  "signature_detection": null
 }
 ```
 
@@ -58,6 +60,7 @@ Compare one test signature against 2–10 references using majority vote.
 | `ref_2` | `file` (required) | — | Reference signature 2 |
 | `ref_3` – `ref_10` | `file` (optional) | — | Additional references (up to 10 total) |
 | `preprocess` | `bool` | `true` | Apply image preprocessing |
+| `detect_signature` | `bool` | `false` | Use Document Intelligence to detect and crop signatures |
 | `model` | `string` | `gpt-4.1` | Model to use |
 | `reasoning_effort` | `string` | `medium` | Reasoning effort for GPT-5 |
 
@@ -90,6 +93,25 @@ Compare one test signature against 2–10 references using majority vote.
   "total_usage": { "input_tokens": 6000, "output_tokens": 1750, "reasoning_tokens": 0, "cached_tokens": 0, "total_tokens": 7750 },
   "elapsed_ms": 4500.2,
   "total_cost_inr": 1.06
+}
+```
+
+When `detect_signature=true`, both the single and batch responses include a `signature_detection` field:
+
+```json
+"signature_detection": {
+  "reference.png": {
+    "signature_found": true,
+    "detection_confidence": 1.0,
+    "was_cropped": true,
+    "crop_bbox": [306, 383, 498, 450]
+  },
+  "test.png": {
+    "signature_found": true,
+    "detection_confidence": 0.88,
+    "was_cropped": true,
+    "crop_bbox": [0, 0, 800, 401]
+  }
 }
 ```
 

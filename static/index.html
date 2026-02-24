@@ -83,6 +83,15 @@
                         <span class="info-tooltip">Runs a 5-step pipeline: EXIF orientation fix → grayscale conversion → light Gaussian blur (σ=0.5) to smooth paper texture → auto-crop whitespace with 20px padding → resize to 1024px max edge. Preserves stroke pressure and line-weight variation.</span>
                     </span>
                 </label>
+                <label class="option toggle">
+                    <span>Detect Signature</span>
+                    <input type="checkbox" id="single-detect-sig" />
+                    <div class="toggle-switch"></div>
+                    <span class="info-btn" tabindex="0">
+                        &#9432;
+                        <span class="info-tooltip">Uses Azure Document Intelligence to detect and crop the signature region from the image before comparison. Useful when images contain full documents, cheques, or forms — the signature area is automatically extracted.<br><strong>⚠ Use with caution</strong> — enable only when needed. Providing pre-cropped signature images is encouraged for best results.</span>
+                    </span>
+                </label>
             </div>
 
             <button class="btn-primary" id="btn-compare" disabled>
@@ -152,6 +161,15 @@
                     <span class="info-btn" tabindex="0">
                         &#9432;
                         <span class="info-tooltip">Runs a 5-step pipeline: EXIF orientation fix → grayscale conversion → light Gaussian blur (σ=0.5) to smooth paper texture → auto-crop whitespace with 20px padding → resize to 1024px max edge. Preserves stroke pressure and line-weight variation.</span>
+                    </span>
+                </label>
+                <label class="option toggle">
+                    <span>Detect Signature</span>
+                    <input type="checkbox" id="batch-detect-sig" />
+                    <div class="toggle-switch"></div>
+                    <span class="info-btn" tabindex="0">
+                        &#9432;
+                        <span class="info-tooltip">Uses Azure Document Intelligence to detect and crop the signature region from the image before comparison. Useful when images contain full documents, cheques, or forms — the signature area is automatically extracted.<br><strong>⚠ Use with caution</strong> — enable only when needed. Providing pre-cropped signature images is encouraged for best results.</span>
                     </span>
                 </label>
             </div>

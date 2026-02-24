@@ -10,9 +10,10 @@ from fastapi import HTTPException
 
 from app.azure_client import get_client, encode_bytes
 from app.config import logger, calculate_cost_inr
-from app.models import SignatureResult, TimingMetrics, CompareResponse
+from app.models import SignatureResult, SignatureDetectionInfo, TimingMetrics, CompareResponse
 from app.services.blob_storage import upload_log
 from app.services.preprocessing import preprocess_signature_pair
+from app.services.signature_detection import detect_and_crop_signature
 from app.prompts import signatureMatcher
 
 # ---------------------------------------------------------------------------
@@ -35,6 +36,7 @@ async def compare_signatures(
     image2_bytes: bytes,
     image2_name: str,
     preprocess: bool = True,
+    detect_signature: bool = False,
     model: str = "gpt-4.1",
     reasoning_effort: Literal["low", "medium", "high"] = "medium",
 ) -> CompareResponse:
@@ -53,6 +55,47 @@ async def compare_signatures(
     # Keep original filenames for the response
     original_image1_name = image1_name
     original_image2_name = image2_name
+
+    # ---- Signature detection via Azure Document Intelligence ----
+    # Only runs when the user explicitly enables it via the toggle.
+    detection_info: dict[str, SignatureDetectionInfo] | None = None
+
+    if detect_signature:
+        det1_task = asyncio.create_task(detect_and_crop_signature(image1_bytes))
+        det2_task = asyncio.create_task(detect_and_crop_signature(image2_bytes))
+        det1_result, det2_result = await asyncio.gather(det1_task, det2_task)
+
+        detection_info = {}
+
+        # Image 1
+        det1_info = SignatureDetectionInfo(
+            signature_found=det1_result.signature_found,
+            detection_confidence=det1_result.confidence,
+            was_cropped=det1_result.cropped_bytes is not None,
+            crop_bbox=det1_result.bbox,
+        )
+        detection_info[original_image1_name] = det1_info
+        if det1_result.cropped_bytes:
+            image1_bytes = det1_result.cropped_bytes
+            logger.info("Image1 cropped to detected signature region")
+
+        # Image 2
+        det2_info = SignatureDetectionInfo(
+            signature_found=det2_result.signature_found,
+            detection_confidence=det2_result.confidence,
+            was_cropped=det2_result.cropped_bytes is not None,
+            crop_bbox=det2_result.bbox,
+        )
+        detection_info[original_image2_name] = det2_info
+        if det2_result.cropped_bytes:
+            image2_bytes = det2_result.cropped_bytes
+            logger.info("Image2 cropped to detected signature region")
+
+        # Warn if either image has no signature
+        if not det1_result.signature_found:
+            logger.warning("No signature detected in image1 (%s)", original_image1_name)
+        if not det2_result.signature_found:
+            logger.warning("No signature detected in image2 (%s)", original_image2_name)
 
     # Optional image preprocessing (grayscale + denoise + autocrop)
     # Runs in a thread pool so the CPU-bound Pillow work doesn't block the event loop
@@ -219,6 +262,7 @@ async def compare_signatures(
         timing=timing,
         elapsed_ms=round(ttlb_ms, 1),
         cost_inr=cost_inr,
+        signature_detection=detection_info,
     )
 
     # --- Persist response log to blob storage ---

@@ -19,6 +19,7 @@ All configuration is via environment variables, loaded from `.env` at startup.
 | `AZURE_MAX_RETRIES` | `3` | Max retries for Azure OpenAI API calls |
 | `MAX_CONCURRENT_LLM_CALLS` | `20` | Semaphore limit for parallel LLM calls |
 | `STREAM_TIMEOUT_SECONDS` | `60` | Timeout per streaming LLM call |
+| `DOCUMENT_INTELLIGENCE_ENDPOINT` | — | Azure Document Intelligence endpoint URL (required only when `detect_signature=true`) |
 
 ---
 
@@ -52,6 +53,9 @@ Used for cost estimation displayed in the UI. Set to `0` to disable.
 
 ```env
 AZURE_ENDPOINT=https://my-resource.openai.azure.com/
+
+# Document Intelligence (optional — needed for Detect Signature feature)
+DOCUMENT_INTELLIGENCE_ENDPOINT=https://my-di-resource.cognitiveservices.azure.com/
 
 # Pricing (INR per 1M tokens)
 MODEL_GPT41_INPUT=168

@@ -1,6 +1,14 @@
 from pydantic import BaseModel, Field
 
 
+class SignatureDetectionInfo(BaseModel):
+    """Metadata from Azure Document Intelligence signature detection."""
+    signature_found: bool = Field(..., description="Whether Document Intelligence detected a signature in the image")
+    detection_confidence: float = Field(0.0, ge=0.0, le=1.0, description="Confidence of the signature detection")
+    was_cropped: bool = Field(False, description="Whether the image was cropped to the signature region")
+    crop_bbox: tuple[int, int, int, int] | None = Field(None, description="Pixel bounding box (left, top, right, bottom) if cropped")
+
+
 class SignatureResult(BaseModel):
     """Structured response from the signature comparison agent."""
     signature_matched: bool
@@ -26,6 +34,9 @@ class CompareResponse(BaseModel):
     timing: TimingMetrics
     elapsed_ms: float
     cost_inr: float | None = Field(None, description="Estimated cost of this call in INR")
+    signature_detection: dict[str, SignatureDetectionInfo] | None = Field(
+        None, description="Document Intelligence detection results keyed by image name (only when detect_signature=True)"
+    )
 
 
 class IndividualResult(BaseModel):
@@ -39,6 +50,9 @@ class IndividualResult(BaseModel):
     elapsed_ms: float
     error: str | None = None
     cost_inr: float | None = Field(None, description="Estimated cost of this call in INR")
+    signature_detection: dict[str, SignatureDetectionInfo] | None = Field(
+        None, description="Document Intelligence detection results keyed by image name"
+    )
 
 
 class BatchVerdict(BaseModel):

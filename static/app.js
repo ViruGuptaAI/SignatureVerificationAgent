@@ -56,8 +56,9 @@
         const model = document.getElementById("single-model").value;
         const reasoning = document.getElementById("single-reasoning").value;
         const preprocess = document.getElementById("single-preprocess").checked;
+        const detectSig = document.getElementById("single-detect-sig").checked;
 
-        const url = `/api/VerifySignature?model=${model}&reasoning_effort=${reasoning}&preprocess=${preprocess}`;
+        const url = `/api/VerifySignature?model=${model}&reasoning_effort=${reasoning}&preprocess=${preprocess}&detect_signature=${detectSig}`;
 
         try {
             const resp = await fetch(url, { method: "POST", body: form });
@@ -210,8 +211,9 @@
         const model = document.getElementById("batch-model").value;
         const reasoning = document.getElementById("batch-reasoning").value;
         const preprocess = document.getElementById("batch-preprocess").checked;
+        const detectSig = document.getElementById("batch-detect-sig").checked;
 
-        const url = `/api/VerifySignatureBatch?model=${model}&reasoning_effort=${reasoning}&preprocess=${preprocess}`;
+        const url = `/api/VerifySignatureBatch?model=${model}&reasoning_effort=${reasoning}&preprocess=${preprocess}&detect_signature=${detectSig}`;
 
         try {
             const resp = await fetch(url, { method: "POST", body: form });

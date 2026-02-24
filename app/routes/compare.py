@@ -14,6 +14,7 @@ async def verify_signature(
     image1: UploadFile = File(..., description="First signature image"),
     image2: UploadFile = File(..., description="Second signature image"),
     preprocess: bool = True,
+    detect_signature: bool = Query(False, description="Use Document Intelligence to detect and crop signatures before comparison"),
     model: ALLOWED_MODELS = Query("gpt-4.1", description="Model to use for comparison"),
     reasoning_effort: Literal["low", "medium", "high"] = Query(
         "medium", description="Reasoning effort for gpt-5 models (low, medium, high)"
@@ -47,6 +48,7 @@ async def verify_signature(
         image1_bytes, image1.filename or "image1.png",
         image2_bytes, image2.filename or "image2.png",
         preprocess=preprocess,
+        detect_signature=detect_signature,
         model=model,
         reasoning_effort=reasoning_effort,
     )

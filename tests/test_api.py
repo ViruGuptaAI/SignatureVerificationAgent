@@ -99,6 +99,20 @@ class TestVerifySignature:
         resp = _upload_pair(test_client, model="gpt-4.1")
         assert resp.status_code == 200
 
+    def test_detect_signature_false_default(self, test_client):
+        """Default detect_signature=false should return null signature_detection."""
+        resp = _upload_pair(test_client)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data.get("signature_detection") is None
+
+    def test_detect_signature_false_explicit(self, test_client):
+        """Explicit detect_signature=false should skip detection."""
+        resp = _upload_pair(test_client, detect_signature="false")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data.get("signature_detection") is None
+
 
 # ---------------------------------------------------------------------------
 # /api/VerifySignatureBatch

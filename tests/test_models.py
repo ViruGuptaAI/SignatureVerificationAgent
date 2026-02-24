@@ -8,6 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.models import (
+    SignatureDetectionInfo,
     SignatureResult,
     TimingMetrics,
     CompareResponse,
@@ -15,6 +16,25 @@ from app.models import (
     BatchVerdict,
     BatchCompareResponse,
 )
+
+
+# ---------------------------------------------------------------------------
+# SignatureDetectionInfo
+# ---------------------------------------------------------------------------
+
+class TestSignatureDetectionInfo:
+    def test_valid_creation(self):
+        info = SignatureDetectionInfo(signature_found=True, detection_confidence=0.9, was_cropped=True, crop_bbox=(10, 20, 90, 45))
+        assert info.signature_found is True
+        assert info.detection_confidence == 0.9
+        assert info.was_cropped is True
+        assert info.crop_bbox == (10, 20, 90, 45)
+
+    def test_confidence_bounds(self):
+        with pytest.raises(ValidationError):
+            SignatureDetectionInfo(signature_found=True, detection_confidence=1.5)
+        with pytest.raises(ValidationError):
+            SignatureDetectionInfo(signature_found=True, detection_confidence=-0.1)
 
 
 # ---------------------------------------------------------------------------
