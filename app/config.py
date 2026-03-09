@@ -26,7 +26,12 @@ MAX_IMAGE_SIZE: int = 1 * 1024 * 1024  # 1 MB
 # ---------------------------------------------------------------------------
 
 def _cost(var: str) -> float:
-    return float(os.getenv(var, "0"))
+    raw = os.getenv(var, "0")
+    try:
+        return float(raw)
+    except (ValueError, TypeError):
+        logger.warning("Could not parse %s=%r as float; defaulting to 0", var, raw)
+        return 0.0
 
 MODEL_PRICING: dict[str, dict[str, float]] = {
     "gpt-4.1": {

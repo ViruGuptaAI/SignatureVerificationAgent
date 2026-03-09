@@ -34,7 +34,6 @@ async def verify_signature_batch(
     ref_9: UploadFile | None = File(None, description="Reference signature 9 (optional)"),
     ref_10: UploadFile | None = File(None, description="Reference signature 10 (optional)"),
     preprocess: bool = True,
-    detect_signature: bool = Query(False, description="Use Document Intelligence to detect and crop signatures before comparison"),
     model: ALLOWED_MODELS = Query("gpt-4.1", description="Model to use for comparison"),
     reasoning_effort: Literal["low", "medium", "high"] = Query(
         "medium", description="Reasoning effort for gpt-5 models"
@@ -106,7 +105,6 @@ async def verify_signature_batch(
                 image2_bytes=test_bytes,
                 image2_name=test_image.filename or "test.png",
                 preprocess=preprocess,
-                detect_signature=detect_signature,
                 model=model,
                 reasoning_effort=reasoning_effort,
             )
@@ -119,7 +117,6 @@ async def verify_signature_batch(
                 usage=resp.usage,
                 elapsed_ms=resp.elapsed_ms,
                 cost_inr=resp.cost_inr,
-                signature_detection=resp.signature_detection,
             )
         except Exception as exc:
             return IndividualResult(
@@ -131,8 +128,6 @@ async def verify_signature_batch(
                 usage=None,
                 elapsed_ms=0.0,
                 error=str(exc),
-                cost_inr=None,
-                signature_detection=None,
             )
 
     tasks = [

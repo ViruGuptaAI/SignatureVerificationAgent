@@ -65,3 +65,30 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           resource-group-name: SharedAIServices
           startup-command: "gunicorn app.main:app --worker-class uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:8000 --timeout 120"
+
+      - name: Ensure Key Vault access for managed identity
+        run: |
+          PRINCIPAL_ID=$(az webapp identity show \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group SharedAIServices \
+            --query principalId -o tsv)
+
+          KV_SCOPE="/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/SharedAIServices/providers/Microsoft.KeyVault/vaults/sigverify-kv"
+
+          # Check if role assignment already exists
+          EXISTING=$(az role assignment list \
+            --assignee "$PRINCIPAL_ID" \
+            --role "Key Vault Secrets User" \
+            --scope "$KV_SCOPE" \
+            --query "[].principalId" -o tsv)
+
+          if [ -z "$EXISTING" ]; then
+            echo "Role assignment missing — creating..."
+            az role assignment create \
+              --role "Key Vault Secrets User" \
+              --assignee-object-id "$PRINCIPAL_ID" \
+              --assignee-principal-type ServicePrincipal \
+              --scope "$KV_SCOPE"
+          else
+            echo "Key Vault role assignment already exists."
+          fi
